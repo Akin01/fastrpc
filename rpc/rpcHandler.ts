@@ -5,21 +5,21 @@ import { MESSAGE_PATTERN_REQUEST } from "./types.ts";
  * RpcHandler is responsible for managing RPC request and event handlers,
  * as well as their associated middleware. It allows registration of handlers and middleware, retrieval of handlers,
  * and merging with other RpcHandler instances.
- * 
+ *
  * Example usage:
  * ```ts
  * const rpcHandler = new RpcHandler();
- * 
+ *
  * // Register a request handler
- * rpcHandler.messagePattern('getUser')(null, null, {
- *   value: async (data) => { return { id: data.id, name: 'John Doe' }; }
+ * rpcHandler.messagePattern('getUser', async (data) => {
+ *   return { id: data.id, name: 'John Doe' };
  * });
- * 
+ *
  * // Register an event handler
- * rpcHandler.eventPattern('userCreated')(null, null, {
- *   value: async (data) => { console.log('User created:', data); }
+ * rpcHandler.eventPattern('userCreated', async (data) => {
+ *   console.log('User created:', data);
  * });
- * 
+ *
  * // Add global middleware
  * rpcHandler.use(async (data, next) => {
  *   console.log('Global middleware before');
@@ -27,19 +27,19 @@ import { MESSAGE_PATTERN_REQUEST } from "./types.ts";
  *   console.log('Global middleware after');
  *   return result;
  * });
- * 
+ *
  * // Add handler-specific middleware
- * rpcHandler.useFilters(async (data, next) => {
+ * rpcHandler.useFilters('getUser', async (data, next) => {
  *   console.log('Handler-specific middleware before');
  *   const result = await next(data);
  *   console.log('Handler-specific middleware after');
  *   return result;
- * })(null, null, { value: async (data) => { return { id: data.id, name: 'John Doe' }; } });
- * 
+ * });
+ *
  * // Retrieve a handler and its middleware
  * const handler = rpcHandler.getHandler('getUser', MESSAGE_PATTERN_REQUEST);
  * const middleware = rpcHandler.getMiddleware('getUser');
- * 
+ *
  * // Merge with another RpcHandler
  * const anotherRpcHandler = new RpcHandler();
  * // ... register handlers and middleware on anotherRpcHandler
@@ -51,49 +51,46 @@ export class RpcHandler {
     string,
     HandlerFunc
   >();
-  private eventHandlers = new Map<string, HandlerFunc>();
-  private globalMiddleware: MiddlewareFunc[] = [];
-  private handlerMiddleware = new Map<string, MiddlewareFunc[]>();
-  private currentPattern?: string;
+  public eventHandlers = new Map<string, HandlerFunc>();
+  public globalMiddleware: MiddlewareFunc[] = [];
+  public handlerMiddleware = new Map<string, MiddlewareFunc[]>();
+  public currentPattern?: string;
 
   /**
-   * Decorator to register a message pattern handler.
+   * Register a message pattern handler.
    * @param pattern The message pattern to register the handler for.
-   * @returns A method decorator.
+   * @param handler The handler function to register.
    */
-  messagePattern(pattern: string): MethodDecorator {
-    return (_target, _propertyKey, descriptor) => {
-      this.currentPattern = pattern;
-      this.requestHandlers.set(pattern, descriptor.value as HandlerFunc);
-      return descriptor;
-    };
+  messagePattern(pattern: string, handler: HandlerFunc): void {
+    this.currentPattern = pattern;
+    this.requestHandlers.set(pattern, handler);
   }
 
   /**
-   * Decorator to register an event pattern handler.
+   * Register an event pattern handler.
    * @param pattern The event pattern to register the handler for.
-   * @returns A method decorator.
+   * @param handler The handler function to register.
    */
-  eventPattern(pattern: string): MethodDecorator {
-    return (_target, _propertyKey, descriptor) => {
-      this.currentPattern = pattern;
-      this.eventHandlers.set(pattern, descriptor.value as HandlerFunc);
-      return descriptor;
-    };
+  eventPattern(pattern: string, handler: HandlerFunc): void {
+    this.currentPattern = pattern;
+    this.eventHandlers.set(pattern, handler);
   }
 
   /**
-   * Decorator to register middleware for the current handler.
+   * Register middleware for a specific pattern.
+   * @param pattern The message or event pattern to register middleware for.
    * @param middleware The middleware functions to register.
-   * @returns A method decorator.
    */
-  useFilters(...middleware: MiddlewareFunc[]): MethodDecorator {
-    return (_target, _propertyKey, descriptor) => {
-      if (this.currentPattern) {
-        this.handlerMiddleware.set(this.currentPattern, middleware);
-      }
-      return descriptor;
-    };
+  useFilters(pattern: string, ...middleware: MiddlewareFunc[]): void {
+    this.handlerMiddleware.set(pattern, middleware);
+  }
+
+  /**
+   * Get the current pattern (used by decorators).
+   * @returns The current pattern or undefined.
+   */
+  getCurrentPattern(): string | undefined {
+    return this.currentPattern;
   }
 
   /**
