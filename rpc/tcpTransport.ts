@@ -1,7 +1,7 @@
 import { MessagePackSerializer } from "./serializer.ts";
 import type { RpcHandler } from "./rpcHandler.ts";
 import { loadTlsConfig, type TlsOptions } from "./tlsConfig.ts";
-import { StreamReader, StreamWrite } from "./stream.ts";
+import { StreamReader, StreamWriter } from "./stream.ts";
 import { injectTraceContext, startRpcSpan } from "./tracing.ts";
 import {
   MESSAGE_PATTERN_REQUEST,
@@ -16,14 +16,14 @@ import type { ValueType } from "@std/msgpack";
 interface ConnectionState {
   conn: Deno.Conn;
   reader: StreamReader;
-  writer: StreamWrite;
+  writer: StreamWriter;
   abortController: AbortController;
 }
 
 /**
  * TcpTransport handles TCP connections for RPC communication.
  * It manages incoming connections, message processing, and graceful shutdown.
- * 
+ *
  * Example usage:
  * ```ts
  * const rpcHandler = new RpcHandler();
@@ -176,7 +176,7 @@ export class TcpTransport {
     return {
       conn,
       reader: new StreamReader(conn.readable.getReader()),
-      writer: new StreamWrite(conn.writable.getWriter()),
+      writer: new StreamWriter(conn.writable.getWriter()),
       abortController: new AbortController(),
     };
   }
@@ -389,12 +389,17 @@ export class TcpTransport {
     state.abortController.abort();
 
     try {
-      state.reader.releaseLock();
-      state.writer.releaseLock();
+      // Close streams gracefully
+      state.reader.close();
+      state.writer.close().catch(() => {
+        // Writer may already be closed or aborted
+      });
+
+      // Close the connection
       state.conn.close();
     } catch {
       // Connection may already be closed
-      // Reader/Writer may already be released
+      // Streams may already be released
     }
   }
 }
