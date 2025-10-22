@@ -2,9 +2,9 @@ import { RpcHandler } from "../../rpc/rpcHandler.ts";
 import {
   Controller,
   EventPattern,
+  getControllerHandler,
   MessagePattern,
   UseFilters,
-  getControllerHandler
 } from "../../rpc/decorator.ts";
 import { TcpTransport } from "../../rpc/tcpTransport.ts";
 import { LoggingMiddleware } from "../../rpc/middleware.ts";

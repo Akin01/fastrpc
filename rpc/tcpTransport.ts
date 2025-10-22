@@ -3,7 +3,11 @@ import type { RpcHandler } from "./rpcHandler.ts";
 import { loadTlsConfig, type TlsOptions } from "./tlsConfig.ts";
 import { FrameReader, FrameWriter } from "./framedMessage.ts";
 import { injectTraceContext, startRpcSpan } from "./tracing.ts";
-import { MESSAGE_PATTERN_REQUEST, type MiddlewareFunc, type RpcMessage, } from "./types.ts";
+import {
+  MESSAGE_PATTERN_REQUEST,
+  type MiddlewareFunc,
+  type RpcMessage,
+} from "./types.ts";
 import type { ValueType } from "@std/msgpack";
 
 interface ConnectionState {
@@ -126,7 +130,9 @@ export class TcpTransport {
             })
           ),
         ),
-        new Promise<void>((resolve) => setTimeout(resolve, this.SHUTDOWN_TIMEOUT_MS)),
+        new Promise<void>((resolve) =>
+          setTimeout(resolve, this.SHUTDOWN_TIMEOUT_MS)
+        ),
       ]);
     }
 
@@ -328,7 +334,10 @@ export class TcpTransport {
     const reply: RpcMessage = {
       ...(id !== undefined && { id }),
       pattern: "REPLY",
-      data: (replyData === undefined || replyData === null ? null : replyData) as ValueType,
+      data:
+        (replyData === undefined || replyData === null
+          ? null
+          : replyData) as ValueType,
       patternType: MESSAGE_PATTERN_REQUEST,
     };
 
@@ -363,11 +372,10 @@ export class TcpTransport {
     try {
       state.reader.releaseLock();
       state.writer.releaseLock();
-      state.conn.close()
+      state.conn.close();
     } catch {
       // Connection may already be closed
       // Reader/Writer may already be released
     }
-
   }
 }

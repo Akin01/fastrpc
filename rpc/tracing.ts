@@ -1,9 +1,15 @@
-import { context, type Span, SpanKind, trace } from "@opentelemetry/api";
+import {
+  context,
+  type Span,
+  SpanKind,
+  trace,
+  type Tracer,
+} from "@opentelemetry/api";
 import { MESSAGE_PATTERN_REQUEST, type PatternType } from "./types.ts";
 
 // Deno automatically configures and registers the global tracer provider
 // when OTEL_DENO=true is set. No manual setup needed.
-export const tracer = trace.getTracer("deno-rpc");
+export const tracer: Tracer = trace.getTracer("deno-rpc");
 
 /**
  * Extract `traceparent` from arbitrary data (e.g., RPC metadata).

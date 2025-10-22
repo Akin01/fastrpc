@@ -1,8 +1,11 @@
-import type { HandlerFunc, PatternType, MiddlewareFunc } from "./types.ts";
+import type { HandlerFunc, MiddlewareFunc, PatternType } from "./types.ts";
 import { MESSAGE_PATTERN_REQUEST } from "./types.ts";
 
 export class RpcHandler {
-  public requestHandlers = new Map<string, HandlerFunc>();
+  public requestHandlers: Map<string, HandlerFunc> = new Map<
+    string,
+    HandlerFunc
+  >();
   private eventHandlers = new Map<string, HandlerFunc>();
   private globalMiddleware: MiddlewareFunc[] = [];
   private handlerMiddleware = new Map<string, MiddlewareFunc[]>();
@@ -37,7 +40,7 @@ export class RpcHandler {
     this.globalMiddleware.push(...middleware);
   }
 
-  getHandler(pattern: string, type: PatternType) {
+  getHandler(pattern: string, type: PatternType): HandlerFunc | undefined {
     return type === MESSAGE_PATTERN_REQUEST
       ? this.requestHandlers.get(pattern)
       : this.eventHandlers.get(pattern);

@@ -1,16 +1,19 @@
 # fastRPC
 
-A high-performance RPC framework for Deno with TCP transport, MessagePack serialization, and built-in observability.
+A high-performance RPC framework for Deno with TCP transport, MessagePack
+serialization, and built-in observability.
 
 ## Features
 
 - 🚀 **High Performance** - Built on TCP with MessagePack binary serialization
 - 🎯 **Type-Safe** - Full TypeScript support with decorators
-- 🔌 **Request/Response & Events** - Support for both synchronous RPC calls and fire-and-forget events
+- 🔌 **Request/Response & Events** - Support for both synchronous RPC calls and
+  fire-and-forget events
 - 🛡️ **TLS Support** - Optional secure communication
 - 📊 **Built-in Tracing** - OpenTelemetry integration for distributed tracing
 - 🔧 **Middleware Support** - Extensible middleware pipeline
-- ⚡ **Framed Messages** - Length-prefixed message framing for reliable communication
+- ⚡ **Framed Messages** - Length-prefixed message framing for reliable
+  communication
 - 🏥 **Health Checks** - Built-in health check endpoint
 
 ## Installation
@@ -30,13 +33,13 @@ import { Controller, MessagePattern, TcpTransport } from "jsr:@akin01/fastRPC";
 ### Server
 
 ```typescript
-import { 
-  Controller, 
-  MessagePattern, 
+import {
+  Controller,
   EventPattern,
   getControllerHandler,
+  MessagePattern,
   RpcHandler,
-  TcpTransport 
+  TcpTransport,
 } from "@akin01/fastRPC";
 
 @Controller()
@@ -81,17 +84,20 @@ console.log("🚀 RPC Server listening on port 3000");
 ### Client
 
 ```typescript
-import { 
-  MESSAGE_PATTERN_REQUEST, 
-  MESSAGE_PATTERN_EVENT, 
-  type RpcMessage,
+import {
+  createFrameMessage,
+  MESSAGE_PATTERN_EVENT,
+  MESSAGE_PATTERN_REQUEST,
   MessagePackSerializer,
-  createFrameMessage
+  type RpcMessage,
 } from "@akin01/fastRPC";
 
 const serializer = new MessagePackSerializer();
 
-async function sendRequest(conn: Deno.Conn, message: RpcMessage): Promise<RpcMessage> {
+async function sendRequest(
+  conn: Deno.Conn,
+  message: RpcMessage,
+): Promise<RpcMessage> {
   const payload = serializer.serialize(message);
   await conn.write(createFrameMessage(payload));
 
@@ -137,7 +143,9 @@ await main();
 ### Decorators
 
 #### `@Controller()`
-Marks a class as an RPC controller. Automatically manages an RpcHandler instance for the class.
+
+Marks a class as an RPC controller. Automatically manages an RpcHandler instance
+for the class.
 
 ```typescript
 @Controller()
@@ -147,6 +155,7 @@ class MyController {
 ```
 
 #### `@MessagePattern(pattern: string)`
+
 Registers a request/response handler for the specified pattern.
 
 ```typescript
@@ -157,6 +166,7 @@ async getUser(data: { id: number }) {
 ```
 
 #### `@EventPattern(pattern: string)`
+
 Registers an event handler (fire-and-forget) for the specified pattern.
 
 ```typescript
@@ -167,6 +177,7 @@ onUserCreated(data: unknown) {
 ```
 
 #### `@UseFilters(...middleware: MiddlewareFunc[])`
+
 Applies middleware to a specific handler.
 
 ```typescript
@@ -180,6 +191,7 @@ createUser(data: unknown) {
 ### Classes
 
 #### `RpcHandler`
+
 Manages message patterns and their handlers.
 
 ```typescript
@@ -189,17 +201,19 @@ handler.merge(getControllerHandler(MyController)); // Merge controller
 ```
 
 #### `TcpTransport`
+
 Handles TCP connections and message routing.
 
 ```typescript
 const transport = new TcpTransport(rpcHandler, {
-  certFile: "./cert.pem",  // Optional TLS
-  keyFile: "./key.pem"      // Optional TLS
+  certFile: "./cert.pem", // Optional TLS
+  keyFile: "./key.pem", // Optional TLS
 });
 await transport.listen(3000);
 ```
 
 #### `MessagePackSerializer`
+
 Serializes/deserializes messages using MessagePack.
 
 ```typescript
@@ -211,6 +225,7 @@ const message = serializer.deserialize(bytes);
 ### Utilities
 
 #### `getControllerHandler(controller: Class)`
+
 Retrieves the RpcHandler from a decorated controller class.
 
 ```typescript
@@ -219,6 +234,7 @@ rpcHandler.merge(handler);
 ```
 
 #### `createFrameMessage(payload: Uint8Array)`
+
 Creates a length-prefixed framed message.
 
 ```typescript
@@ -236,7 +252,7 @@ import type { MiddlewareFunc } from "@akin01/fastRPC";
 export const LoggingMiddleware: MiddlewareFunc = async (message, next) => {
   console.log(`📥 [${message.pattern}]`, message.data);
   const start = Date.now();
-  
+
   try {
     const result = await next();
     console.log(`✅ Reply (${Date.now() - start}ms):`, result);
@@ -268,12 +284,12 @@ handleOperation(data: unknown) {
 
 ```typescript
 type RpcMessage = {
-  id?: string;              // Optional message ID for request/response correlation
-  pattern: string;          // Handler pattern (e.g., "user.get")
-  data: ValueType;          // Message payload (serializable by MessagePack)
+  id?: string; // Optional message ID for request/response correlation
+  pattern: string; // Handler pattern (e.g., "user.get")
+  data: ValueType; // Message payload (serializable by MessagePack)
   patternType: MessagePattern; // 0 = REQUEST, 1 = EVENT
-  timeoutMs?: number;       // Optional timeout override
-}
+  timeoutMs?: number; // Optional timeout override
+};
 ```
 
 ### Message Patterns
@@ -288,19 +304,21 @@ Enable TLS by providing certificate and key files:
 ```typescript
 const transport = new TcpTransport(rpcHandler, {
   certFile: "./certs/server.crt",
-  keyFile: "./certs/server.key"
+  keyFile: "./certs/server.key",
 });
 ```
 
 ## Observability
 
-fastRPC has built-in OpenTelemetry tracing support. Set the `OTEL_DENO=true` environment variable to enable automatic tracing:
+fastRPC has built-in OpenTelemetry tracing support. Set the `OTEL_DENO=true`
+environment variable to enable automatic tracing:
 
 ```bash
 OTEL_DENO=true deno run -A server.ts
 ```
 
 Each RPC call creates a span with:
+
 - Pattern name
 - Request/Event type
 - Parent trace context propagation
@@ -351,8 +369,11 @@ getUser({ id }: { id: number }) {
 ```
 
 Client receives:
+
 ```typescript
-{ error: "Invalid user ID" }
+{
+  error: "Invalid user ID";
+}
 ```
 
 ## Timeouts
@@ -364,7 +385,7 @@ const response = await sendRequest(conn, {
   pattern: "slow.operation",
   data: {},
   patternType: MESSAGE_PATTERN_REQUEST,
-  timeoutMs: 10000 // 10 seconds
+  timeoutMs: 10000, // 10 seconds
 });
 ```
 

@@ -27,7 +27,7 @@ function getRpcHandler(target: any): RpcHandler {
  */
 export function getControllerHandler(
   // deno-lint-ignore no-explicit-any
-  controller: any
+  controller: any,
 ): RpcHandler {
   return getRpcHandler(controller);
 }
@@ -36,16 +36,18 @@ export function getControllerHandler(
  * Class decorator to mark a class as an RPC controller
  * Automatically creates and manages an RpcHandler instance
  */
-export function Controller() {
-  return function <T extends Constructor>(target: T) {
+export function Controller(): <T extends Constructor>(
+  target: T,
+) => T & RpcControllerClass {
+  return function <T extends Constructor>(target: T): T & RpcControllerClass {
     // Ensure the handler is created for this class
     getRpcHandler(target);
-    
+
     // Add a static method to retrieve the handler
-    (target as T & RpcControllerClass).getRpcHandler = function() {
+    (target as T & RpcControllerClass).getRpcHandler = function () {
       return getRpcHandler(target);
     };
-    
+
     return target as T & RpcControllerClass;
   };
 }
@@ -73,7 +75,11 @@ export function EventPattern(pattern: string): MethodDecorator {
 }
 
 export function UseFilters(...mw: MiddlewareFunc[]): MethodDecorator {
-  return (target: object, _prop: string | symbol, desc: PropertyDescriptor): void => {
+  return (
+    target: object,
+    _prop: string | symbol,
+    desc: PropertyDescriptor,
+  ): void => {
     const reg = getRpcHandler(target.constructor);
     reg.useFilters(...mw)(target, _prop, desc);
   };
