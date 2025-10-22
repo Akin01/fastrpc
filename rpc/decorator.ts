@@ -52,6 +52,11 @@ export function Controller(): <T extends Constructor>(
   };
 }
 
+/**
+ * Method decorator to define a message pattern handler
+ * @param pattern The message pattern to handle
+ * @returns MethodDecorator
+ */
 export function MessagePattern(pattern: string): MethodDecorator {
   return (
     target: object,
@@ -63,6 +68,11 @@ export function MessagePattern(pattern: string): MethodDecorator {
   };
 }
 
+/** 
+ * Method decorator to define an event pattern handler
+ * @param pattern The event pattern to handle
+ * @returns MethodDecorator
+ */
 export function EventPattern(pattern: string): MethodDecorator {
   return (
     target: object,
@@ -74,6 +84,11 @@ export function EventPattern(pattern: string): MethodDecorator {
   };
 }
 
+/**
+ * Method decorator to apply middleware functions to a handler
+ * @param mw Middleware functions to apply
+ * @returns MethodDecorator
+ */
 export function UseFilters(...mw: MiddlewareFunc[]): MethodDecorator {
   return (
     target: object,

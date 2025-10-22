@@ -21,7 +21,8 @@
     "./types": "./rpc/types.ts",
     "./serializer": "./rpc/serializer.ts",
     "./tlsConfig": "./rpc/tlsConfig.ts",
-    "./tracing": "./rpc/tracing.ts"
+    "./tracing": "./rpc/tracing.ts",
+    "./stream": "./rpc/stream.ts"
   },
   "compilerOptions": {
     "emitDecoratorMetadata": true,

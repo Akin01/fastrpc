@@ -4,7 +4,6 @@ import {
   type RpcMessage,
 } from "../../rpc/types.ts";
 import { MessagePackSerializer } from "../../rpc/serializer.ts";
-import { createFrameMessage } from "../../rpc/framedMessage.ts";
 
 const serializer = new MessagePackSerializer();
 
@@ -13,7 +12,7 @@ async function sendRequest(
   message: RpcMessage,
 ): Promise<RpcMessage> {
   const payload = serializer.serialize(message);
-  await conn.write(createFrameMessage(payload));
+  await conn.write(payload);
 
   const lenBuf = new Uint8Array(4);
   await conn.read(lenBuf);
@@ -27,7 +26,7 @@ async function sendRequest(
 
 async function sendEvent(conn: Deno.Conn, message: RpcMessage): Promise<void> {
   const payload = serializer.serialize(message);
-  await conn.write(createFrameMessage(payload));
+  await conn.write(payload);
 }
 
 async function main() {

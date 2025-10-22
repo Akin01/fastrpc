@@ -6,4 +6,4 @@ export * from "./rpc/serializer.ts";
 export * from "./rpc/tlsConfig.ts";
 export * from "./rpc/tracing.ts";
 export * from "./rpc/types.ts";
-export * from "./rpc/framedMessage.ts";
+export * from "./rpc/stream.ts";

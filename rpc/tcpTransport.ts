@@ -1,7 +1,7 @@
 import { MessagePackSerializer } from "./serializer.ts";
 import type { RpcHandler } from "./rpcHandler.ts";
 import { loadTlsConfig, type TlsOptions } from "./tlsConfig.ts";
-import { FrameReader, FrameWriter } from "./framedMessage.ts";
+import { StreamReader, StreamWrite } from "./stream.ts";
 import { injectTraceContext, startRpcSpan } from "./tracing.ts";
 import {
   MESSAGE_PATTERN_REQUEST,
@@ -10,13 +10,28 @@ import {
 } from "./types.ts";
 import type { ValueType } from "@std/msgpack";
 
+/**
+ * Represents the state of a TCP connection.
+ */
 interface ConnectionState {
   conn: Deno.Conn;
-  reader: FrameReader;
-  writer: FrameWriter;
+  reader: StreamReader;
+  writer: StreamWrite;
   abortController: AbortController;
 }
 
+/**
+ * TcpTransport handles TCP connections for RPC communication.
+ * It manages incoming connections, message processing, and graceful shutdown.
+ * 
+ * Example usage:
+ * ```ts
+ * const rpcHandler = new RpcHandler();
+ * // ... register handlers and middleware on rpcHandler
+ * const tcpTransport = new TcpTransport(rpcHandler, { certFile: "./cert.pem", keyFile: "./key.pem" });
+ * await tcpTransport.listen(8080);
+ * ```
+ */
 export class TcpTransport {
   private readonly serializer = new MessagePackSerializer();
   private readonly abortController = new AbortController();
@@ -41,6 +56,10 @@ export class TcpTransport {
     }));
   }
 
+  /**
+   * Start listening for incoming TCP connections on the specified port.
+   * @param port The port number to listen on.
+   */
   async listen(port: number): Promise<void> {
     const server = await this.createServer(port);
     this.setupSignalHandlers(server);
@@ -156,8 +175,8 @@ export class TcpTransport {
   private createConnectionState(conn: Deno.Conn): ConnectionState {
     return {
       conn,
-      reader: new FrameReader(conn.readable.getReader()),
-      writer: new FrameWriter(conn.writable.getWriter()),
+      reader: new StreamReader(conn.readable.getReader()),
+      writer: new StreamWrite(conn.writable.getWriter()),
       abortController: new AbortController(),
     };
   }

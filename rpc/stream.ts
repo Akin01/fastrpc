@@ -1,4 +1,8 @@
-export class FrameReader {
+/**
+ * StreamReader for framed MessagePack messages over streams.
+ * Each message is framed as: [4-byte big-endian length][MessagePack payload]
+ */
+export class StreamReader {
   private buffer: Uint8Array<ArrayBufferLike> = new Uint8Array(0);
 
   constructor(private reader: ReadableStreamDefaultReader<Uint8Array>) {}
@@ -39,27 +43,21 @@ export class FrameReader {
   }
 }
 
-export class FrameWriter {
+/**
+ * StreamWriter for framed MessagePack messages over streams.
+ * Each message is framed as: [4-byte big-endian length][MessagePack payload]
+ */
+export class StreamWrite {
   constructor(private writer: WritableStreamDefaultWriter<Uint8Array>) {}
 
   /**
    * Write a framed message to the stream
    */
   async write(payload: Uint8Array): Promise<void> {
-    await this.writer.write(createFrameMessage(payload));
+    await this.writer.write(payload);
   }
 
   releaseLock() {
     this.writer.releaseLock();
   }
-}
-
-/**
- * Frame a payload with a 4-byte big-endian length prefix
- */
-export function createFrameMessage(payload: Uint8Array): Uint8Array {
-  const f = new Uint8Array(4 + payload.length);
-  new DataView(f.buffer).setUint32(0, payload.length, false);
-  f.set(payload, 4);
-  return f;
 }

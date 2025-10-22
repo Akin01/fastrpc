@@ -19,13 +19,13 @@ serialization, and built-in observability.
 ## Installation
 
 ```bash
-deno add @akin01/fastRPC
+deno add @akin01/fastrpc
 ```
 
 Or import directly:
 
 ```typescript
-import { Controller, MessagePattern, TcpTransport } from "jsr:@akin01/fastRPC";
+import { Controller, MessagePattern, TcpTransport } from "jsr:@akin01/fastrpc";
 ```
 
 ## Quick Start
@@ -40,7 +40,7 @@ import {
   MessagePattern,
   RpcHandler,
   TcpTransport,
-} from "@akin01/fastRPC";
+} from "@akin01/fastrpc";
 
 @Controller()
 class MathController {
@@ -85,12 +85,11 @@ console.log("🚀 RPC Server listening on port 3000");
 
 ```typescript
 import {
-  createFrameMessage,
   MESSAGE_PATTERN_EVENT,
   MESSAGE_PATTERN_REQUEST,
   MessagePackSerializer,
   type RpcMessage,
-} from "@akin01/fastRPC";
+} from "@akin01/fastrpc";
 
 const serializer = new MessagePackSerializer();
 
@@ -99,7 +98,7 @@ async function sendRequest(
   message: RpcMessage,
 ): Promise<RpcMessage> {
   const payload = serializer.serialize(message);
-  await conn.write(createFrameMessage(payload));
+  await conn.write(payload);
 
   const lenBuf = new Uint8Array(4);
   await conn.read(lenBuf);
@@ -214,7 +213,7 @@ await transport.listen(3000);
 
 #### `MessagePackSerializer`
 
-Serializes/deserializes messages using MessagePack.
+Serializes/deserializes messages using MessagePack. **Notes that serialize also frame the message with 4-byte length prefix**.
 
 ```typescript
 const serializer = new MessagePackSerializer();
@@ -233,21 +232,12 @@ const handler = getControllerHandler(MyController);
 rpcHandler.merge(handler);
 ```
 
-#### `createFrameMessage(payload: Uint8Array)`
-
-Creates a length-prefixed framed message.
-
-```typescript
-const frame = createFrameMessage(payload);
-await conn.write(frame);
-```
-
 ## Middleware
 
 Create custom middleware by implementing the `MiddlewareFunc` type:
 
 ```typescript
-import type { MiddlewareFunc } from "@akin01/fastRPC";
+import type { MiddlewareFunc } from "@akin01/fastrpc";
 
 export const LoggingMiddleware: MiddlewareFunc = async (message, next) => {
   console.log(`📥 [${message.pattern}]`, message.data);
