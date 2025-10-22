@@ -29,7 +29,7 @@ class SimpleTestController {
 // Controller with constructor dependency
 @Controller()
 class DITestController {
-  constructor(private service: TestService) { }
+  constructor(private service: TestService) {}
 
   @MessagePattern("di.test")
   test() {

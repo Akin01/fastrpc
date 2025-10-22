@@ -51,9 +51,15 @@ export class RpcHandler {
     string,
     HandlerFunc
   >();
-  public eventHandlers = new Map<string, HandlerFunc>();
+  public eventHandlers: Map<string, HandlerFunc> = new Map<
+    string,
+    HandlerFunc
+  >();
   public globalMiddleware: MiddlewareFunc[] = [];
-  public handlerMiddleware = new Map<string, MiddlewareFunc[]>();
+  public handlerMiddleware: Map<string, MiddlewareFunc[]> = new Map<
+    string,
+    MiddlewareFunc[]
+  >();
   public currentPattern?: string;
 
   /**
