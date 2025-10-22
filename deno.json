@@ -1,6 +1,6 @@
 {
   "name": "@akin01/fastrpc",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "A high performance RPC framework for Deno, supporting TCP transport and MessagePack serialization.",
   "license": "MIT",
   "tasks": {
