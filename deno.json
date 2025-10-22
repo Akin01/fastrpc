@@ -5,7 +5,8 @@
   "license": "MIT",
   "tasks": {
     "example-server": "deno run -A examples/hello-rpc/server.ts",
-    "example-client": "deno run -A examples/hello-rpc/client.ts"
+    "example-client": "deno run -A examples/hello-rpc/client.ts",
+    "test": "deno test -A tests/"
   },
   "imports": {
     "@opentelemetry/api": "npm:@opentelemetry/api@^1.9.0",

@@ -16,6 +16,14 @@ serialization, and built-in observability.
   communication
 - 🏥 **Health Checks** - Built-in health check endpoint
 
+## Performance
+
+- **Binary Protocol** - MessagePack is more compact than JSON
+- **Framed Messages** - Length-prefixed frames prevent partial reads
+- **Connection Pooling** - Reuse connections for multiple requests
+- **Zero-copy** - Efficient buffer handling with Uint8Array
+- **Async/Await** - Non-blocking I/O throughout
+
 ## Installation
 
 ```bash
@@ -213,7 +221,8 @@ await transport.listen(3000);
 
 #### `MessagePackSerializer`
 
-Serializes/deserializes messages using MessagePack. **Notes that serialize also frame the message with 4-byte length prefix**.
+Serializes/deserializes messages using MessagePack. **Notes that serialize also
+frame the message with 4-byte length prefix**.
 
 ```typescript
 const serializer = new MessagePackSerializer();
@@ -223,14 +232,94 @@ const message = serializer.deserialize(bytes);
 
 ### Utilities
 
-#### `getControllerHandler(controller: Class)`
+#### `getControllerHandler(controller: Class | Instance)`
 
-Retrieves the RpcHandler from a decorated controller class.
+Retrieves the RpcHandler from a decorated controller class or instance. Supports
+dependency injection.
 
 ```typescript
+// Without dependencies - pass the class
 const handler = getControllerHandler(MyController);
 rpcHandler.merge(handler);
+
+// With dependencies - pass an instance
+const db = new DatabaseService();
+const logger = new LoggerService();
+const controller = new MyController(db, logger);
+const handler = getControllerHandler(controller);
+rpcHandler.merge(handler);
 ```
+
+## Dependency Injection
+
+Controllers can accept dependencies through their constructors, enabling better
+testability and separation of concerns.
+
+### Simple Controllers (No Dependencies)
+
+```typescript
+@Controller()
+class MathController {
+  @MessagePattern("math.add")
+  add({ a, b }: { a: number; b: number }) {
+    return a + b;
+  }
+}
+
+// Auto-instantiation
+rpcHandler.merge(getControllerHandler(MathController));
+```
+
+### Constructor Injection (Recommended)
+
+```typescript
+// Define services
+class DatabaseService {
+  async findUser(id: number) {
+    // ... database logic
+  }
+}
+
+class LoggerService {
+  log(message: string) {
+    console.log(message);
+  }
+}
+
+// Controller with dependencies
+@Controller()
+class UserController {
+  constructor(
+    private db: DatabaseService,
+    private logger: LoggerService,
+  ) {}
+
+  @MessagePattern("user.get")
+  async getUser({ id }: { id: number }) {
+    this.logger.log(`Fetching user ${id}`);
+    return await this.db.findUser(id);
+  }
+}
+
+// Manually instantiate with dependencies
+const db = new DatabaseService();
+const logger = new LoggerService();
+const userController = new UserController(db, logger);
+
+// Register the instance
+rpcHandler.merge(getControllerHandler(userController));
+```
+
+### Benefits
+
+- **Testability**: Easy to mock dependencies in unit tests
+- **Flexibility**: Swap implementations without changing controller code
+- **Type Safety**: Full TypeScript support for dependencies
+- **Separation of Concerns**: Controllers focus on RPC logic, not service
+  creation
+
+For a complete example, see
+[examples/dependency-injection](./examples/dependency-injection).
 
 ## Middleware
 
@@ -331,17 +420,23 @@ const health = await sendRequest(conn, {
 
 See the [examples](./examples) directory for complete working examples:
 
-- **hello-rpc** - Basic request/response and event examples
-- **rpcServer** - Advanced server with multiple controllers and middleware
+- **hello-rpc** - Basic request/response and event examples with dependency
+  injection
+- **dependency-injection** - Comprehensive guide to dependency injection
+  patterns
 
 ### Run Examples
 
 ```bash
-# Start the server
+# Start the hello-rpc server
 deno task example-server
 
 # In another terminal, run the client
 deno task example-client
+
+# Or run the dependency injection example
+deno run --allow-net examples/dependency-injection/server.ts
+deno run --allow-net examples/dependency-injection/client.ts
 ```
 
 ## Error Handling
@@ -392,14 +487,6 @@ await transport.listen(3000);
 // Server will wait for active connections to complete (up to 5s)
 // before shutting down
 ```
-
-## Performance
-
-- **Binary Protocol** - MessagePack is more compact than JSON
-- **Framed Messages** - Length-prefixed frames prevent partial reads
-- **Connection Pooling** - Reuse connections for multiple requests
-- **Zero-copy** - Efficient buffer handling with Uint8Array
-- **Async/Await** - Non-blocking I/O throughout
 
 ## License
 
