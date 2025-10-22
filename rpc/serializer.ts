@@ -9,7 +9,7 @@ import { decode, encode } from "@std/msgpack";
 export class MessagePackSerializer {
   /**
    * Serializes an RPC message into a MessagePack-encoded Uint8Array with framing.
-   * @param message The RPC message to serialize. 
+   * @param message The RPC message to serialize.
    * @returns A Uint8Array containing the framed MessagePack-encoded message.
    */
   serialize(message: RpcMessage): Uint8Array {
@@ -19,7 +19,7 @@ export class MessagePackSerializer {
   /**
    * Deserializes a MessagePack-encoded RPC message from the given buffer.
    * @param buffer The Uint8Array containing the MessagePack-encoded RPC message.
-   * @returns The deserialized RPC message. 
+   * @returns The deserialized RPC message.
    */
   deserialize(buffer: Uint8Array): RpcMessage {
     return decode(buffer) as RpcMessage;
